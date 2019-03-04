@@ -47,9 +47,11 @@ services:
       - db
     volumes:
       - /usr/src/app/node_modules/
+      - user-uploads:/usr/src/app/public/files
       - ./user-service:/usr/src/app/
     labels:
       - "traefik.frontend.rule=PathPrefixStrip:/api/user"
       - "traefik.port=3000"
 volumes:
   db-data:
+  user-uploads:

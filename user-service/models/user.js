@@ -23,6 +23,13 @@ const userSchema = new Schema({
     },
     _id: false,
   }],
+  files: [{
+    path: {
+      type: String,
+      required: true,
+    },
+    _id: false,
+  }],
 });
 
 module.exports = mongoose.model('User', userSchema);
