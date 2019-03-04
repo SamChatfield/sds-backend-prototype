@@ -33,6 +33,9 @@ services:
     depends_on:
       - proxy
       - db
+    volumes:
+      - /usr/src/app/node_modules/
+      - ./room-service:/usr/src/app/
     labels:
       - "traefik.frontend.rule=PathPrefixStrip:/api/room"
       - "traefik.port=3000"
@@ -42,6 +45,9 @@ services:
     depends_on:
       - proxy
       - db
+    volumes:
+      - /usr/src/app/node_modules/
+      - ./user-service:/usr/src/app/
     labels:
       - "traefik.frontend.rule=PathPrefixStrip:/api/user"
       - "traefik.port=3000"
