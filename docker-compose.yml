@@ -8,25 +8,25 @@ services:
       - 8080:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-  db:
-    image: mongo:4.0.6-xenial
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DB_ADMIN_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${DB_ADMIN_PASS}
-    volumes:
-      - db-data:/data/db
-  dbui:
-    image: mongo-express:0.49.0
-    depends_on:
-      - proxy
-      - db
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${DB_ADMIN_USER}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${DB_ADMIN_PASS}
-      ME_CONFIG_MONGODB_SERVER: db
-    labels:
-      - "traefik.frontend.rule=Host:dbadmin.${HOST_NAME}"
-      - "traefik.port=8081"
+  # db:
+  #   image: mongo:4.0.6-xenial
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: ${DB_ADMIN_USER}
+  #     MONGO_INITDB_ROOT_PASSWORD: ${DB_ADMIN_PASS}
+  #   volumes:
+  #     - db-data:/data/db
+  # dbui:
+  #   image: mongo-express:0.49.0
+  #   depends_on:
+  #     - proxy
+  #     - db
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: ${DB_ADMIN_USER}
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: ${DB_ADMIN_PASS}
+  #     ME_CONFIG_MONGODB_SERVER: db
+  #   labels:
+  #     - "traefik.frontend.rule=Host:dbadmin.${HOST_NAME}"
+  #     - "traefik.port=8081"
   room:
     build: ./room-service
     image: samchatfield/sds-room-service
@@ -55,5 +55,5 @@ services:
       - "traefik.frontend.rule=PathPrefixStrip:/api/user"
       - "traefik.port=3000"
 volumes:
-  db-data:
+  # db-data:
   user-uploads:

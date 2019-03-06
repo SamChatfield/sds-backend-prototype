@@ -12,7 +12,8 @@ const app = express();
 
 // Database setup (2 second delay to allow for DB service to start)
 setTimeout(() => {
-  mongoose.connect('mongodb://db/user?authSource=admin', {
+  // mongoose.connect('mongodb://db/user?authSource=admin', {
+  mongoose.connect('mongodb://ds159185.mlab.com:59185/sds', {
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: false,
