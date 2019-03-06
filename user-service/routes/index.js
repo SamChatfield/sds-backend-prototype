@@ -104,7 +104,10 @@ router.post('/:userId/files', multer({
 }).array('file'), async (req, res, next) => {
   console.log(req.files);
   try {
-    const newFiles = req.files.map(f => ({ path: f.path.replace(/^public/, '/api/user') }));
+    const newFiles = req.files.map(f => ({
+      name: f.filename,
+      path: f.path.replace(/^public/, '/api/user'),
+    }));
     console.log(`newFiles:\n${JSON.stringify(newFiles)}`);
 
     const data = await User.findOneAndUpdate({
