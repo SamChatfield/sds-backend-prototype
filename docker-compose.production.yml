@@ -8,6 +8,10 @@ services:
       - 8080:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - sds
+    labels:
+      - "traefik.docker.network=sds"
     restart: always
   # db:
   #   image: mongo:4.0.6-xenial
@@ -37,7 +41,10 @@ services:
       # - db
     volumes:
       - /usr/src/app/node_modules/
+    networks:
+      - sds
     labels:
+      - "traefik.docker.network=sds"
       - "traefik.frontend.rule=PathPrefixStrip:/api/room"
       - "traefik.port=3000"
     restart: always
@@ -50,10 +57,16 @@ services:
       - /usr/src/app/node_modules/
       - user-uploads:/usr/src/app/public/files
       - ./user-service/.env:/usr/src/app/.env
+    networks:
+      - sds
     labels:
+      - "traefik.docker.network=sds"
       - "traefik.frontend.rule=PathPrefixStrip:/api/user"
       - "traefik.port=3000"
     restart: always
 volumes:
   # db-data:
   user-uploads:
+networks:
+  sds:
+    external: true
