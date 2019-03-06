@@ -33,7 +33,7 @@ services:
     command: npm run dev
     depends_on:
       - proxy
-      - db
+      # - db
     volumes:
       - /usr/src/app/node_modules/
       - ./room-service:/usr/src/app/
@@ -46,7 +46,7 @@ services:
     command: npm run dev
     depends_on:
       - proxy
-      - db
+      # - db
     volumes:
       - /usr/src/app/node_modules/
       - user-uploads:/usr/src/app/public/files

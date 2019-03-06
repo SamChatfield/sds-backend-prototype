@@ -34,7 +34,7 @@ services:
     image: samchatfield/sds-room-service
     depends_on:
       - proxy
-      - db
+      # - db
     volumes:
       - /usr/src/app/node_modules/
     labels:
@@ -45,11 +45,11 @@ services:
     image: samchatfield/sds-user-service
     depends_on:
       - proxy
-      - db
+      # - db
     volumes:
       - /usr/src/app/node_modules/
       - user-uploads:/usr/src/app/public/files
-      - ./user-service/.env:/usr/src/app/
+      - ./user-service/.env:/usr/src/app/.env
     labels:
       - "traefik.frontend.rule=PathPrefixStrip:/api/user"
       - "traefik.port=3000"
