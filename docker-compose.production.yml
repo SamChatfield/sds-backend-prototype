@@ -28,29 +28,24 @@ services:
       - "traefik.frontend.rule=Host:dbadmin.${HOST_NAME}"
       - "traefik.port=8081"
   room:
-    build: ./room-service
     image: samchatfield/sds-room-service
-    command: npm run dev
     depends_on:
       - proxy
       - db
     volumes:
       - /usr/src/app/node_modules/
-      - ./room-service:/usr/src/app/
     labels:
       - "traefik.frontend.rule=PathPrefixStrip:/api/room"
       - "traefik.port=3000"
   user:
-    build: ./user-service
     image: samchatfield/sds-user-service
-    command: npm run dev
     depends_on:
       - proxy
       - db
     volumes:
       - /usr/src/app/node_modules/
       - user-uploads:/usr/src/app/public/files
-      - ./user-service:/usr/src/app/
+      - ./user-service/.env:/usr/src/app/
     labels:
       - "traefik.frontend.rule=PathPrefixStrip:/api/user"
       - "traefik.port=3000"
