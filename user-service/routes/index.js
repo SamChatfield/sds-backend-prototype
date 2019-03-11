@@ -1,6 +1,8 @@
 const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
+const path = require('path');
+const del = require('del');
 
 const User = require('../models/user');
 
@@ -11,8 +13,15 @@ const defaultProjection = {
   __v: false,
 };
 
-router.get('/', (req, res) => {
-  res.send('User Service');
+// Get all users
+router.get('/', async (req, res, next) => {
+  console.log('Get all users');
+  try {
+    const data = await User.find({}, defaultProjection);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Create a new user
@@ -21,6 +30,8 @@ router.post('/', async (req, res, next) => {
   try {
     const user = new User({
       userId: req.body.userId,
+      locations: req.body.locations,
+      files: req.body.files,
     });
     const data = await user.save();
     res.json(data);
@@ -91,20 +102,24 @@ router.get('/:userId/files', async (req, res, next) => {
 router.post('/:userId/files', multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      const path = `public/files/${req.params.userId}`;
-      if (!fs.existsSync(path)) {
-        fs.mkdirSync(path, { recursive: true });
+      const userDir = `public/files/${req.params.userId}`;
+      if (!fs.existsSync(userDir)) {
+        fs.mkdirSync(userDir, { recursive: true });
       }
-      cb(null, path);
+      cb(null, userDir);
     },
     filename: (req, file, cb) => {
-      cb(null, file.originalname);
+      // Add the current ISO time string to the request as req.params.time
+      req.params.time = new Date().toISOString();
+      const { name, ext } = path.parse(file.originalname);
+      cb(null, `${name}-${req.params.time}${ext}`);
     },
   }),
 }).array('file'), async (req, res, next) => {
   console.log(req.files);
   try {
     const newFiles = req.files.map(f => ({
+      time: req.params.time,
       name: f.filename,
       path: f.path.replace(/^public/, '/api/user'),
     }));
@@ -120,6 +135,72 @@ router.post('/:userId/files', multer({
     });
 
     res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Delete all files for the user
+router.delete('/:userId/files', async (req, res, next) => {
+  console.log(`Delete all files from user with userId ${req.params.userId}`);
+  try {
+    const data = await User.findOneAndUpdate({
+      userId: req.params.userId,
+    }, {
+      $set: { files: [] },
+    }, {
+      new: true,
+      projection: defaultProjection,
+    });
+
+    const deleted = await del([`public/files/${req.params.userId}/*`]);
+    console.log(`Deleted: ${JSON.stringify(deleted)}`);
+
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Delete file for the user
+router.delete('/:userId/files/:fileId', async (req, res, next) => {
+  console.log(`Delete file with fileId ${req.params.fileId} from user with userId ${req.params.userId}`);
+  try {
+    // Find the existing file
+    const fileObj = (await User.findOne({
+      userId: req.params.userId,
+      // files: { _id: req.params.fileId },
+    }, {
+      files: { $elemMatch: { _id: req.params.fileId } },
+    }, {
+      projection: 'files',
+    })).files[0];
+
+    if (!fileObj) {
+      console.log('File not found');
+      res.status(404).send('File not found');
+    } else {
+      console.log(`Existing file object found: ${JSON.stringify(fileObj)}`);
+
+      const data = await User.findOneAndUpdate({
+        userId: req.params.userId,
+      }, {
+        $pull: { files: { _id: req.params.fileId } },
+      }, {
+        new: true,
+        projection: defaultProjection,
+      });
+
+      const filePath = fileObj.path.replace(/^\/api\/user/, 'public');
+      const deleted = await del([filePath]);
+      if (!deleted) {
+        console.warn(`Tried to delete ${JSON.stringify(deleted)} but deleted was empty`);
+      } else {
+        console.log(`Deleted: ${JSON.stringify(deleted)}`);
+      }
+
+      res.json(data);
+    }
   } catch (err) {
     next(err);
   }

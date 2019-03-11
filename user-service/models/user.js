@@ -24,6 +24,10 @@ const userSchema = new Schema({
     _id: false,
   }],
   files: [{
+    time: {
+      type: Date,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -32,7 +36,6 @@ const userSchema = new Schema({
       type: String,
       required: true,
     },
-    _id: false,
   }],
 });
 
