@@ -13,10 +13,11 @@ router.get('/', (req, res) => {
 
 router.post('/:roomNumber/unlock', (req, res) => {
   const { roomNumber } = req.params;
+  const { userId } = req.body;
 
   if (Object.keys(roomPermissions).includes(roomNumber)) {
-    if (req.body.userId) {
-      if (roomPermissions[roomNumber].includes(req.body.userId)) {
+    if (userId) {
+      if (roomPermissions[roomNumber].includes(userId)) {
         res.json({ unlock: true });
       } else {
         res.json({ unlock: false });
