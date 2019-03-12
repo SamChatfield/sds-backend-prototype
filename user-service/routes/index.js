@@ -32,6 +32,7 @@ router.post('/', async (req, res, next) => {
       userId: req.body.userId,
       locations: req.body.locations,
       files: req.body.files,
+      preferences: req.body.preferences,
     });
     const data = await user.save();
     res.json(data);
