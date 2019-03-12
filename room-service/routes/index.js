@@ -48,6 +48,30 @@ router.post('/', async (req, res, next) => {
   }
 });
 
+router.put('/:roomId', async (req, res, next) => {
+  console.log(`Updating room information for ${req.params.roomId}`);
+  try {
+    const updateData = {};
+    if (req.body.equipment) updateData.equipment = req.body.equipment;
+    if (req.body.noiseLevel) updateData.noiseLevel = req.body.noiseLevel;
+    if (req.body.temperatureLevel) updateData.temperatureLevel = req.body.temperatureLevel;
+    if (req.body.wifiSpeed) updateData.wifiSpeed = req.body.wifiSpeed;
+
+    const data = await Room.findOneAndUpdate({
+      roomId: req.params.roomId,
+    }, {
+      $set: { ...updateData },
+    }, {
+      new: true,
+      projection: defaultProjection,
+    });
+
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/:roomNumber/unlock', (req, res) => {
   const { roomNumber } = req.params;
   const { userId } = req.body;
