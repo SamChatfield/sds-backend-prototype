@@ -1,4 +1,5 @@
 const express = require('express');
+const moment = require('moment');
 
 const Room = require('../models/room');
 
@@ -37,6 +38,7 @@ router.post('/', async (req, res, next) => {
         longitude: req.body.location.longitude,
       },
       equipment: req.body.equipment,
+      bookings: req.body.bookings,
       noiseLevel: req.body.noiseLevel,
       temperatureLevel: req.body.temperatureLevel,
       wifiSpeed: req.body.wifiSpeed,
@@ -68,6 +70,82 @@ router.put('/:roomId', async (req, res, next) => {
     });
 
     res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Get booking at specific time
+router.get('/:roomId/bookings/:start', async (req, res, next) => {
+  console.log(`Get room booking for ${req.params.roomId} at ${req.params.start}`);
+  try {
+    // TODO: Use aggregation matching to see if there are multiple bookings at one time
+    const data = (await Room.findOne({
+      roomId: req.params.roomId,
+    }, {
+      bookings: { $elemMatch: { start: req.params.start } },
+    }, {
+      projection: 'bookings',
+    }));
+    console.log(`data:\n${JSON.stringify(data, null, 2)}`);
+    // const data = await Room.aggregate([
+    //   { $unwind: '$bookings' },
+    //   { $match: { 'bookings.start': '2019-03-13T12:00:00.000Z' } },
+    // ]);
+
+    if (!data) {
+      res.status(404).send('Room not found');
+    } else {
+      const bookingData = data.bookings[0];
+      console.log(`booking data:\n${JSON.stringify(bookingData, null, 2)}`);
+
+      if (!bookingData) {
+        res.json(null);
+      } else {
+        res.json(bookingData);
+      }
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Add new booking
+router.post('/:roomId/bookings', async (req, res, next) => {
+  console.log(`Add new booking to room ${req.params.roomId}`);
+  try {
+    if (!req.body.start) {
+      res.status(400).send('No start time provided');
+    } else {
+      const startMoment = moment(req.body.start);
+      const startMomentString = startMoment.toISOString();
+      const startMomentHour = moment(startMoment).startOf('hour');
+
+      if (!startMoment.isSame(startMomentHour)) {
+        res.status(400).send('Start time not on the hour');
+      } else {
+        const newBooking = {
+          start: startMomentString,
+          end: startMoment.add(1, 'hours').toISOString(),
+          leader: req.body.leader,
+          users: req.body.users,
+        };
+        console.log(`newBooking:\n${JSON.stringify(newBooking, null, 2)}`);
+
+        // TODO: Check if there is already a booking at this time
+
+        const data = await Room.findOneAndUpdate({
+          roomId: req.params.roomId,
+        }, {
+          $push: { bookings: newBooking },
+        }, {
+          new: true,
+          projection: defaultProjection,
+        });
+
+        res.json(data);
+      }
+    }
   } catch (err) {
     next(err);
   }

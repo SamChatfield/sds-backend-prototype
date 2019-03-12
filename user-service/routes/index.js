@@ -170,7 +170,6 @@ router.delete('/:userId/files/:fileId', async (req, res, next) => {
     // Find the existing file
     const fileObj = (await User.findOne({
       userId: req.params.userId,
-      // files: { _id: req.params.fileId },
     }, {
       files: { $elemMatch: { _id: req.params.fileId } },
     }, {

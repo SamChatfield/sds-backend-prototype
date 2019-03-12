@@ -7,6 +7,25 @@ const equipmentEnum = [
   'PROJECTOR',
 ];
 
+const bookingSchema = new Schema({
+  start: {
+    type: Date,
+    required: true,
+  },
+  end: {
+    type: Date,
+    required: true,
+  },
+  leader: {
+    type: String,
+    required: true,
+  },
+  users: {
+    type: [String],
+    required: true,
+  },
+});
+
 const roomSchema = new Schema({
   roomId: {
     type: String,
@@ -39,6 +58,7 @@ const roomSchema = new Schema({
     }],
     required: true,
   },
+  bookings: [bookingSchema],
   noiseLevel: {
     type: String,
     uppercase: true,
