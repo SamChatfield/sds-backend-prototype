@@ -216,6 +216,7 @@ router.put('/:userId/preferences', async (req, res, next) => {
       $set: { preferences: req.body },
     }, {
       new: true,
+      projection: defaultProjection,
     });
 
     res.json(data);
