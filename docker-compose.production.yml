@@ -41,6 +41,7 @@ services:
       # - db
     volumes:
       - /usr/src/app/node_modules/
+      - ./room-service/.env:/usr/src/app/.env
     networks:
       - sds
     labels:
