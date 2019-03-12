@@ -27,10 +27,9 @@ router.get('/', async (req, res, next) => {
 
 // Create a new room
 router.post('/', async (req, res, next) => {
-  console.log(`Create new room, buildingId: ${req.body.buildingId}, roomId: ${req.body.roomId}`);
+  console.log(`Create new room with roomId: ${req.body.roomId}`);
   try {
     const room = new Room({
-      buildingId: req.body.buildingId,
       roomId: req.body.roomId,
       floor: req.body.floor,
       location: {

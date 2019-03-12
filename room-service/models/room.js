@@ -8,14 +8,11 @@ const equipmentEnum = [
 ];
 
 const roomSchema = new Schema({
-  buildingId: {
-    type: String,
-    required: true,
-  },
   roomId: {
     type: String,
     required: true,
     unique: true,
+    match: /^\w+-\w+$/,
   },
   floor: {
     type: Number,
