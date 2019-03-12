@@ -37,6 +37,10 @@ const userSchema = new Schema({
       required: true,
     },
   }],
+  preferences: {
+    type: Map,
+    of: Number,
+  },
 });
 
 module.exports = mongoose.model('User', userSchema);

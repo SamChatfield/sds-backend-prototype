@@ -206,4 +206,22 @@ router.delete('/:userId/files/:fileId', async (req, res, next) => {
   }
 });
 
+// Update preferences for user
+router.put('/:userId/preferences', async (req, res, next) => {
+  console.log(`Update preferences for user ${req.params.userId}`);
+  try {
+    const data = await User.findOneAndUpdate({
+      userId: req.params.userId,
+    }, {
+      $set: { preferences: req.body },
+    }, {
+      new: true,
+    });
+
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
