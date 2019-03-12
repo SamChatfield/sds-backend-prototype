@@ -48,6 +48,7 @@ router.post('/', async (req, res, next) => {
   }
 });
 
+// Update room information
 router.put('/:roomId', async (req, res, next) => {
   console.log(`Updating room information for ${req.params.roomId}`);
   try {
