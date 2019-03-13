@@ -153,26 +153,37 @@ router.post('/:roomId/bookings', async (req, res, next) => {
       if (!startMoment.isSame(startMomentHour)) {
         res.status(400).send('Start time not on the hour');
       } else {
-        const newBooking = {
-          start: startMomentString,
-          end: startMoment.add(1, 'hours').toISOString(),
-          leader: req.body.leader,
-          users: req.body.users,
-        };
-        console.log(`newBooking:\n${JSON.stringify(newBooking, null, 2)}`);
-
-        // TODO: Check if there is already a booking at this time
-
-        const data = await Room.findOneAndUpdate({
+        // Check for a booking already at the start time
+        const bookingClashes = await Room.findOne({
           roomId: req.params.roomId,
         }, {
-          $push: { bookings: newBooking },
+          bookings: { $elemMatch: { start: startMomentString } },
         }, {
-          new: true,
-          projection: defaultProjection,
+          projection: 'bookings',
         });
 
-        res.json(data);
+        if (bookingClashes.bookings && bookingClashes.bookings.length > 0) {
+          res.status(400).send('Room already booked');
+        } else {
+          const newBooking = {
+            start: startMomentString,
+            end: startMoment.add(1, 'hours').toISOString(),
+            leader: req.body.leader,
+            users: req.body.users,
+          };
+          console.log(`newBooking:\n${JSON.stringify(newBooking, null, 2)}`);
+
+          const data = await Room.findOneAndUpdate({
+            roomId: req.params.roomId,
+          }, {
+            $push: { bookings: newBooking },
+          }, {
+            new: true,
+            projection: defaultProjection,
+          });
+
+          res.json(data);
+        }
       }
     }
   } catch (err) {
