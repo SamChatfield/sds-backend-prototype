@@ -11,6 +11,19 @@ tags:
     description: Room data
 paths:
   /user:
+    get:
+      tags:
+        - user
+      summary: Get all users
+      responses:
+        '200':
+          description: User data.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
     post:
       tags:
         - user
@@ -87,7 +100,6 @@ paths:
         required: true
         content:
           application/json:
-            # Referring to schema with $ref causes swagger-codegen to break
             schema:
               type: object
               properties:
@@ -162,6 +174,81 @@ paths:
                     type: string
                     format: binary
                   description: multipart/form-data files each sent with key 'file'.
+      responses:
+        '200':
+          description: Updated user data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+    delete:
+      tags:
+        - user
+      summary: Delete all user files
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The userId to delete all files for.
+          schema:
+            $ref: '#/components/schemas/User/properties/userId'
+      responses:
+        '200':
+          description: Updated user data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+  '/user/{userId}/files/{fileId}':
+    delete:
+      tags:
+        - user
+      summary: Delete one user file
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The userId to delete a file for.
+          schema:
+            $ref: '#/components/schemas/User/properties/userId'
+        - name: fileId
+          in: path
+          required: true
+          description: The fileId of the file to delete.
+          schema:
+            $ref: '#/components/schemas/User/properties/files/items/properties/_id'
+      responses:
+        '200':
+          description: Updated user data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: File not found
+  '/user/{userId}/preferences':
+    put:
+      tags:
+        - user
+      summary: Update user preferences
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The userId to update preferences for.
+          schema:
+            $ref: '#/components/schemas/User/properties/userId'
+      requestBody:
+        description: New preferences object to set. The request body will overwrite the old preferences object rather than being merged into it. Therefore, any preferences missing from the request body will be removed.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User/properties/preferences'
       responses:
         '200':
           description: Updated user data.
@@ -249,6 +336,16 @@ components:
           items:
             type: object
             properties:
+              '_id':
+                type: string
+                description: File ID
+                readOnly: true
+              time:
+                type: string
+                format: date-time
+                description: Date and time file was uploaded
+                default: Date.now
+                readOnly: true
               name:
                 type: string
                 description: Filename
@@ -260,5 +357,13 @@ components:
             required:
               - name
               - path
+        preferences:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+          example:
+            TV: 0.642
+            PROJECTOR: 0.341
       required:
         - userId
