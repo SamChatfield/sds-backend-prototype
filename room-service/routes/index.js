@@ -10,11 +10,6 @@ const defaultProjection = {
   __v: false,
 };
 
-const roomPermissions = {
-  222: ['1642203'],
-  225: ['1234567'],
-};
-
 // Get all rooms
 router.get('/', async (req, res, next) => {
   console.log('Get alll rooms');
@@ -80,13 +75,13 @@ router.get('/:roomId/bookings/:start', async (req, res, next) => {
   console.log(`Get room booking for ${req.params.roomId} at ${req.params.start}`);
   try {
     // TODO: Use aggregation matching to see if there are multiple bookings at one time
-    const data = (await Room.findOne({
+    const data = await Room.findOne({
       roomId: req.params.roomId,
     }, {
       bookings: { $elemMatch: { start: req.params.start } },
     }, {
       projection: 'bookings',
-    }));
+    });
     console.log(`data:\n${JSON.stringify(data, null, 2)}`);
     // const data = await Room.aggregate([
     //   { $unwind: '$bookings' },
@@ -150,6 +145,43 @@ router.post('/:roomId/bookings', async (req, res, next) => {
     next(err);
   }
 });
+
+router.get('/:roomId/unlock/:userId', async (req, res, next) => {
+  const { roomId, userId } = req.params;
+  const { time } = req.body;
+  console.log(`Should room ${roomId} unlock for user ${userId}?`);
+  // Get the time specified in the request or use current time
+  const currentMoment = time ? moment(time) : moment();
+  const currentSlotStart = currentMoment.startOf('hour').toISOString();
+  console.log(`Current slot start time was ${currentSlotStart}`);
+  try {
+    const data = await Room.findOne({
+      roomId: req.params.roomId,
+    }, {
+      bookings: { $elemMatch: { start: currentSlotStart } },
+    }, {
+      projection: 'bookings',
+    });
+    console.log(`data:\n${JSON.stringify(data, null, 2)}`);
+
+    if (!data) {
+      res.status(404).send('Room not found');
+    } else if (!data.bookings || !data.bookings.length) {
+      // Should the room just open and create a new booking if there isn't one already?
+      res.status(404).send('Booking not found');
+    } else {
+      const { users } = data.bookings[0];
+      res.json({ unlock: users.includes(userId) });
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+const roomPermissions = {
+  222: ['1642203'],
+  225: ['1234567'],
+};
 
 router.post('/:roomNumber/unlock', (req, res) => {
   const { roomNumber } = req.params;
