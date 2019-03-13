@@ -1,0 +1,264 @@
+openapi: 3.0.0
+info:
+  title: Room Booking System API
+  version: 0.1.0
+servers:
+  - url: 'http://sds.samchatfield.com/api'
+tags:
+  - name: user
+    description: User data
+  - name: room
+    description: Room data
+paths:
+  /user:
+    post:
+      tags:
+        - user
+      summary: Create new user
+      requestBody:
+        description: User object to create.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Created user object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  '/user/{userId}':
+    get:
+      tags:
+        - user
+      summary: Get all user data
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The userId for which to get data.
+          schema:
+            $ref: '#/components/schemas/User/properties/userId'
+      responses:
+        '200':
+          description: User data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+  '/user/{userId}/locations':
+    get:
+      tags:
+        - user
+      summary: Get user location data
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The userId for which to get data.
+          schema:
+            $ref: '#/components/schemas/User/properties/userId'
+      responses:
+        '200':
+          description: User location data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User/properties/locations'
+        '404':
+          description: User not found
+    post:
+      tags:
+        - user
+      summary: Add a new location
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The userId to add a new location for.
+          schema:
+            $ref: '#/components/schemas/User/properties/userId'
+      requestBody:
+        description: Location object to add.
+        required: true
+        content:
+          application/json:
+            # Referring to schema with $ref causes swagger-codegen to break
+            schema:
+              type: object
+              properties:
+                time:
+                  type: string
+                  format: date-time
+                  description: Date and time as ISO 8601 string
+                  default: Date.now
+                latitude:
+                  type: number
+                  format: double
+                  description: Latitude in decimal degrees
+                longitude:
+                  type: number
+                  format: double
+                  description: Longitude in decimal degrees
+              required:
+                - latitude
+                - longitude
+      responses:
+        '200':
+          description: Updated user data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+  '/user/{userId}/files':
+    get:
+      tags:
+        - user
+      summary: Get user files
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The userId for which to get data.
+          schema:
+            $ref: '#/components/schemas/User/properties/userId'
+      responses:
+        '200':
+          description: User files.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User/properties/files'
+        '404':
+          description: User not found
+    post:
+      tags:
+        - user
+      summary: Upload a new file
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The userId to upload a new file for.
+          schema:
+            $ref: '#/components/schemas/User/properties/userId'
+      requestBody:
+        description: New files to upload.
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: multipart/form-data files each sent with key 'file'.
+      responses:
+        '200':
+          description: Updated user data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+  '/room/{roomNumber}/unlock':
+    post:
+      tags:
+        - room
+      summary: Check if room should unlock for given userId
+      parameters:
+        - name: roomNumber
+          in: path
+          required: true
+          description: The roomNumber for the query.
+          schema:
+            type: integer
+      requestBody:
+        description: Object containing userId to check for permissions to unlock room.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  $ref: '#/components/schemas/User/properties/userId'
+      responses:
+        '200':
+          description: Boolean response indicating whether to unlock door.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unlock:
+                    type: boolean
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum:
+                      - Invalid room number provided
+                      - No userId provided
+                    description: Error message
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        userId:
+          type: string
+        locations:
+          type: array
+          items:
+            type: object
+            properties:
+              time:
+                type: string
+                format: date-time
+                description: Date and time as ISO 8601 string
+                default: Date.now
+              latitude:
+                type: number
+                format: double
+                description: Latitude in decimal degrees
+              longitude:
+                type: number
+                format: double
+                description: Longitude in decimal degrees
+            required:
+              - latitude
+              - longitude
+        files:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Filename
+              path:
+                type: string
+                description: >-
+                  Relative path to URL of file on the server (including
+                  filename)
+            required:
+              - name
+              - path
+      required:
+        - userId

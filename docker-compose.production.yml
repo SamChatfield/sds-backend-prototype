@@ -34,6 +34,21 @@ services:
   #     - "traefik.frontend.rule=Host:dbadmin.${HOST_NAME}"
   #     - "traefik.port=8081"
   #   restart: always
+  docs:
+    image: swaggerapi/swagger-ui:v3.21.0
+    depends_on:
+      - proxy
+    volumes:
+      - ./docs-service/openapi.yaml:/tmp/openapi.yaml
+    networks:
+      - sds
+    environment:
+      SWAGGER_JSON: /tmp/openapi.yaml
+    labels:
+      - "traefik.docker.network=sds"
+      - "traefik.frontend.rule=Host:docs.${HOST_NAME}"
+      - "traefik.port=8080"
+    restart: always
   room:
     image: samchatfield/sds-room-service
     depends_on:
