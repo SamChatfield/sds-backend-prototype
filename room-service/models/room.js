@@ -50,6 +50,11 @@ const roomSchema = new Schema({
     },
     required: true,
   },
+  capacity: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
   equipment: {
     type: [{
       type: String,

@@ -32,6 +32,7 @@ router.post('/', async (req, res, next) => {
         latitude: req.body.location.latitude,
         longitude: req.body.location.longitude,
       },
+      capacity: req.body.capacity,
       equipment: req.body.equipment,
       bookings: req.body.bookings,
       noiseLevel: req.body.noiseLevel,
@@ -65,6 +66,7 @@ router.put('/:roomId', async (req, res, next) => {
   console.log(`Updating room information for ${req.params.roomId}`);
   try {
     const updateData = {};
+    if (req.body.capacity) updateData.capacity = req.body.capacity;
     if (req.body.equipment) updateData.equipment = req.body.equipment;
     if (req.body.noiseLevel) updateData.noiseLevel = req.body.noiseLevel;
     if (req.body.temperatureLevel) updateData.temperatureLevel = req.body.temperatureLevel;
@@ -79,7 +81,11 @@ router.put('/:roomId', async (req, res, next) => {
       projection: defaultProjection,
     });
 
-    res.json(data);
+    if (!data) {
+      res.status(404).send('Room not found');
+    } else {
+      res.json(data);
+    }
   } catch (err) {
     next(err);
   }
