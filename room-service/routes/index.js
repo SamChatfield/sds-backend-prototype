@@ -45,6 +45,21 @@ router.post('/', async (req, res, next) => {
   }
 });
 
+// Get room information
+router.get('/:roomId', async (req, res, next) => {
+  console.log(`Get information for room ${req.params.roomId}`);
+  try {
+    const data = await Room.findOne({ roomId: req.params.roomId }, defaultProjection);
+    if (!data) {
+      res.status(404).send('Room not found');
+    } else {
+      res.json(data);
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Update room information
 router.put('/:roomId', async (req, res, next) => {
   console.log(`Updating room information for ${req.params.roomId}`);
@@ -65,6 +80,25 @@ router.put('/:roomId', async (req, res, next) => {
     });
 
     res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Delete room
+router.delete('/:roomId', async (req, res, next) => {
+  console.log(`Delete room ${req.params.roomId}`);
+  try {
+    const data = await Room.findOneAndDelete({
+      roomId: req.params.roomId,
+    }, {
+      projection: defaultProjection,
+    });
+    if (!data) {
+      res.status(404).send('Room not found');
+    } else {
+      res.json(data);
+    }
   } catch (err) {
     next(err);
   }
