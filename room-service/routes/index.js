@@ -191,6 +191,30 @@ router.post('/:roomId/bookings', async (req, res, next) => {
   }
 });
 
+// Delete a booking
+router.delete('/:roomId/bookings/:bookingId', async (req, res, next) => {
+  const { roomId, bookingId } = req.params;
+  console.log(`Delete booking for room ${roomId} with ID ${bookingId}`);
+  try {
+    const data = await Room.findOneAndUpdate({
+      roomId,
+    }, {
+      $pull: { bookings: { _id: bookingId } },
+    }, {
+      new: true,
+      projection: defaultProjection,
+    });
+
+    if (!data) {
+      res.status(404).send('Room not found');
+    } else {
+      res.json(data);
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get('/:roomId/unlock/:userId', async (req, res, next) => {
   const { roomId, userId } = req.params;
   const { time } = req.body;
@@ -201,7 +225,7 @@ router.get('/:roomId/unlock/:userId', async (req, res, next) => {
   console.log(`Current slot start time was ${currentSlotStart}`);
   try {
     const data = await Room.findOne({
-      roomId: req.params.roomId,
+      roomId,
     }, {
       bookings: { $elemMatch: { start: currentSlotStart } },
     }, {
