@@ -110,41 +110,6 @@ router.delete('/:roomId', async (req, res, next) => {
   }
 });
 
-// Get booking at specific time
-router.get('/:roomId/bookings/:start', async (req, res, next) => {
-  console.log(`Get room booking for ${req.params.roomId} at ${req.params.start}`);
-  try {
-    // TODO: Use aggregation matching to see if there are multiple bookings at one time
-    const data = await Room.findOne({
-      roomId: req.params.roomId,
-    }, {
-      bookings: { $elemMatch: { start: req.params.start } },
-    }, {
-      projection: 'bookings',
-    });
-    console.log(`data:\n${JSON.stringify(data, null, 2)}`);
-    // const data = await Room.aggregate([
-    //   { $unwind: '$bookings' },
-    //   { $match: { 'bookings.start': '2019-03-13T12:00:00.000Z' } },
-    // ]);
-
-    if (!data) {
-      res.status(404).send('Room not found');
-    } else {
-      const bookingData = data.bookings[0];
-      console.log(`booking data:\n${JSON.stringify(bookingData, null, 2)}`);
-
-      if (!bookingData) {
-        res.json(null);
-      } else {
-        res.json(bookingData);
-      }
-    }
-  } catch (err) {
-    next(err);
-  }
-});
-
 // Add new booking
 router.post('/:roomId/bookings', async (req, res, next) => {
   console.log(`Add new booking to room ${req.params.roomId}`);
@@ -190,6 +155,41 @@ router.post('/:roomId/bookings', async (req, res, next) => {
 
           res.json(data);
         }
+      }
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Get booking at specific time
+router.get('/:roomId/bookings/:start', async (req, res, next) => {
+  console.log(`Get room booking for ${req.params.roomId} at ${req.params.start}`);
+  try {
+    // TODO: Use aggregation matching to see if there are multiple bookings at one time
+    const data = await Room.findOne({
+      roomId: req.params.roomId,
+    }, {
+      bookings: { $elemMatch: { start: req.params.start } },
+    }, {
+      projection: 'bookings',
+    });
+    console.log(`data:\n${JSON.stringify(data, null, 2)}`);
+    // const data = await Room.aggregate([
+    //   { $unwind: '$bookings' },
+    //   { $match: { 'bookings.start': '2019-03-13T12:00:00.000Z' } },
+    // ]);
+
+    if (!data) {
+      res.status(404).send('Room not found');
+    } else {
+      const bookingData = data.bookings[0];
+      console.log(`booking data:\n${JSON.stringify(bookingData, null, 2)}`);
+
+      if (!bookingData) {
+        res.json(null);
+      } else {
+        res.json(bookingData);
       }
     }
   } catch (err) {
@@ -258,6 +258,7 @@ const roomPermissions = {
   225: ['1234567'],
 };
 
+// DEPRECATED
 router.post('/:roomNumber/unlock', (req, res) => {
   const { roomNumber } = req.params;
   const { userId } = req.body;
