@@ -261,8 +261,239 @@ paths:
                 $ref: '#/components/schemas/User'
         '404':
           description: User not found
+  /room:
+    get:
+      tags:
+        - room
+      summary: Get all rooms
+      responses:
+        '200':
+          description: Room data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Room'
+    post:
+      tags:
+        - room
+      summary: Create a new room
+      requestBody:
+        description: Room object to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Room'
+      responses:
+        '200':
+          description: Created room object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+  '/room/{roomId}':
+    get:
+      tags:
+        - room
+      summary: Get room data
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          description: The roomId for which to get data
+          schema:
+            $ref: '#/components/schemas/Room/properties/roomId'
+      responses:
+        '200':
+          description: Room data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '404':
+          description: Room not found
+    put:
+      tags:
+        - room
+      summary: Update room data
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          description: The roomId for which to update data
+          schema:
+            $ref: '#/components/schemas/Room/properties/roomId'
+      requestBody:
+        description: Room fields to update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                capacity:
+                  $ref: '#/components/schemas/Room/properties/capacity'
+                equipment:
+                  $ref: '#/components/schemas/Room/properties/equipment'
+                noiseLevel:
+                  $ref: '#/components/schemas/Room/properties/noiseLevel'
+                temperatureLevel:
+                  $ref: '#/components/schemas/Room/properties/temperatureLevel'
+                wifiSpeed:
+                  $ref: '#/components/schemas/Room/properties/wifiSpeed'
+      responses:
+        '200':
+          description: Updated room data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '404':
+          description: Room not found
+    delete:
+      tags:
+        - room
+      summary: Delete room
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          description: The roomId to delete
+          schema:
+            $ref: '#/components/schemas/Room/properties/roomId'
+      responses:
+        '200':
+          description: Deleted room object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '404':
+          description: Room not found
+  '/room/{roomId}/bookings':
+    post:
+      tags:
+        - room
+      summary: Add a new booking
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          description: The roomId to add a booking for
+          schema:
+            $ref: '#/components/schemas/Room/properties/roomId'
+      requestBody:
+        description: Booking object to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Room/properties/bookings/items'
+      responses:
+        '200':
+          description: Updated room data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '404':
+          description: Room not found
+  '/room/{roomId}/bookings/{start}':
+    get:
+      tags:
+        - room
+      summary: Get booking for given start time
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          description: The roomId to get the booking for
+          schema:
+            $ref: '#/components/schemas/Room/properties/roomId'
+        - name: start
+          in: path
+          required: true
+          description: The start time to get the booking for
+          schema:
+            $ref: '#/components/schemas/Room/properties/bookings/items/properties/start'
+      responses:
+        '200':
+          description: Booking if one exists, or null otherwise
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room/properties/bookings/items'
+        '404':
+          description: Room not found
+  '/room/{roomId}/bookings/{bookingId}':
+    delete:
+      tags:
+        - room
+      summary: Delete a booking
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          description: The roomId to delete the booking for
+          schema:
+            $ref: '#/components/schemas/Room/properties/roomId'
+        - name: bookingId
+          in: path
+          required: true
+          description: The bookingId to delete
+          schema:
+            $ref: '#/components/schemas/Room/properties/bookings/items/properties/_id'
+      responses:
+        '200':
+          description: Updated room data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '404':
+          description: Room not found
+  '/room/{roomId}/unlock/{userId}':
+    get:
+      tags:
+        - room
+      summary: Check if room should unlock for given user
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          description: The roomId to check whether the user may enter
+          schema:
+            $ref: '#/components/schemas/Room/properties/roomId'
+        - name: userId
+          in: path
+          required: true
+          description: The userId to check
+          schema:
+            $ref: '#/components/schemas/User/properties/userId'
+      responses:
+        '200':
+          description: Boolean response indicating whether to unlock door
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unlock:
+                    type: boolean
+        '404':
+          description: Not Found
+          content:
+            text/html:
+              schema:
+                type: string
+                enum:
+                  - Room not found
+                  - Booking not found
   '/room/{roomNumber}/unlock':
     post:
+      deprecated: true
       tags:
         - room
       summary: Check if room should unlock for given userId
@@ -413,6 +644,7 @@ components:
           format: integer
           minimum: 1
           description: The number of people that can be booked into the room
+          example: 6
         equipment:
           type: array
           uniqueItems: true
@@ -430,6 +662,12 @@ components:
           items:
             type: object
             properties:
+              _id:
+                type: string
+                pattern: '^[0-9a-f]{24}$'
+                description: Booking ID
+                readOnly: true
+                example: '5c8816493937130010ef2783'
               start:
                 type: string
                 format: date-time
