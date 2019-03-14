@@ -243,7 +243,10 @@ paths:
           schema:
             $ref: '#/components/schemas/User/properties/userId'
       requestBody:
-        description: New preferences object to set. The request body will overwrite the old preferences object rather than being merged into it. Therefore, any preferences missing from the request body will be removed.
+        description: >-
+          New preferences object to set. The request body will overwrite the old
+          preferences object rather than being merged into it. Therefore, any
+          preferences missing from the request body will be removed.
         required: true
         content:
           application/json:
@@ -310,6 +313,8 @@ components:
       properties:
         userId:
           type: string
+          description: User ID
+          example: '1234567'
         locations:
           type: array
           items:
@@ -320,14 +325,17 @@ components:
                 format: date-time
                 description: Date and time as ISO 8601 string
                 default: Date.now
+                example: '2019-03-14T14:35:39.609Z'
               latitude:
                 type: number
                 format: double
                 description: Latitude in decimal degrees
+                example: 52.4505
               longitude:
                 type: number
                 format: double
                 description: Longitude in decimal degrees
+                example: -1.9357
             required:
               - latitude
               - longitude
@@ -336,24 +344,29 @@ components:
           items:
             type: object
             properties:
-              '_id':
+              _id:
                 type: string
+                pattern: '^[0-9a-f]{24}$'
                 description: File ID
                 readOnly: true
+                example: '5c87a8bce2ae7509af1e9880'
               time:
                 type: string
                 format: date-time
                 description: Date and time file was uploaded
                 default: Date.now
                 readOnly: true
+                example: '2019-03-11T19:04:59.472Z'
               name:
                 type: string
-                description: Filename
+                description: Filename composed of original filename and the date and time the file was uploaded
+                example: 'recording-2019-03-11T19:04:59.472Z.wav'
               path:
                 type: string
                 description: >-
                   Relative path to URL of file on the server (including
                   filename)
+                example: '/api/user/files/1234567/recording-2019-03-11T19:04:59.472Z.wav'
             required:
               - name
               - path
@@ -367,3 +380,107 @@ components:
             PROJECTOR: 0.341
       required:
         - userId
+    Room:
+      type: object
+      properties:
+        roomId:
+          type: string
+          pattern: '^\w+-\w+$'
+          description: Room ID
+          example: 'CS-225'
+        floor:
+          type: number
+          description: Floor number that the room is located on
+          example: 2
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+              format: double
+              description: Latitude in decimal degrees
+              example: 52.4505
+            longitude:
+              type: number
+              format: double
+              description: Longitude in decimal degrees
+              example: -1.9357
+          required:
+            - latitude
+            - longitude
+        capacity:
+          type: number
+          format: integer
+          minimum: 1
+          description: The number of people that can be booked into the room
+        equipment:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+              - TV
+              - PROJECTOR
+          description: List of the equipment in the room
+          example:
+            - TV
+            - PROJECTOR
+        bookings:
+          type: array
+          items:
+            type: object
+            properties:
+              start:
+                type: string
+                format: date-time
+                description: Start date and time of the booking, must be on the hour
+                example: '2019-03-13T13:00:00.000Z'
+              end:
+                type: string
+                format: date-time
+                readOnly: true
+                description: End date and time of the booking, exactly one hour after start
+                example: '2019-03-13T14:00:00.000Z'
+              leader:
+                $ref: '#/components/schemas/User/properties/userId'
+              users:
+                type: array
+                uniqueItems: true
+                minItems: 1
+                items:
+                  $ref: '#/components/schemas/User/properties/userId'
+                description: The users that are part of this booking, including the leader
+                example:
+                  - '1234567'
+                  - '7654321'
+            required:
+              - start
+              - leader
+              - users
+        noiseLevel:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+          description: The noise level of the room
+          example: MEDIUM
+        temperatureLevel:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+          description: The temperature level of the room
+          example: MEDIUM
+        wifiSpeed:
+          type: number
+          format: integer
+          description: The WiFi speed in the room in Mb/s
+          example: 40
+      required:
+        - roomId
+        - floor
+        - location
+        - capacity
+        - equipment
