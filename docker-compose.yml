@@ -12,25 +12,6 @@ services:
       - sds
     labels:
       - "traefik.docker.network=sds"
-  # db:
-  #   image: mongo:4.0.6-xenial
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: ${DB_ADMIN_USER}
-  #     MONGO_INITDB_ROOT_PASSWORD: ${DB_ADMIN_PASS}
-  #   volumes:
-  #     - db-data:/data/db
-  # dbui:
-  #   image: mongo-express:0.49.0
-  #   depends_on:
-  #     - proxy
-  #     - db
-  #   environment:
-  #     ME_CONFIG_MONGODB_ADMINUSERNAME: ${DB_ADMIN_USER}
-  #     ME_CONFIG_MONGODB_ADMINPASSWORD: ${DB_ADMIN_PASS}
-  #     ME_CONFIG_MONGODB_SERVER: db
-  #   labels:
-  #     - "traefik.frontend.rule=Host:dbadmin.${HOST_NAME}"
-  #     - "traefik.port=8081"
   docs:
     image: swaggerapi/swagger-ui:v3.21.0
     depends_on:
@@ -43,7 +24,7 @@ services:
       SWAGGER_JSON: /tmp/openapi.yaml
     labels:
       - "traefik.docker.network=sds"
-      - "traefik.frontend.rule=Host:docs.${HOST_NAME}"
+      - "traefik.frontend.rule=Host:docs.${HOST_NAME},docs.${HOST_NAME_ALT}"
       - "traefik.port=8080"
   room:
     build: ./room-service
@@ -51,7 +32,6 @@ services:
     command: npm run dev
     depends_on:
       - proxy
-      # - db
     volumes:
       - /usr/src/app/node_modules/
       - ./room-service:/usr/src/app/
@@ -67,7 +47,6 @@ services:
     command: npm run dev
     depends_on:
       - proxy
-      # - db
     volumes:
       - /usr/src/app/node_modules/
       - user-uploads:/usr/src/app/public/files
@@ -79,7 +58,6 @@ services:
       - "traefik.frontend.rule=PathPrefixStrip:/api/user"
       - "traefik.port=3000"
 volumes:
-  # db-data:
   user-uploads:
 networks:
   sds:
