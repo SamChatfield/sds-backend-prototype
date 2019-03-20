@@ -9,6 +9,8 @@ tags:
     description: User data
   - name: room
     description: Room data
+  - name: booking
+    description: Booking functions
 paths:
   /user:
     get:
@@ -261,6 +263,63 @@ paths:
                 $ref: '#/components/schemas/User'
         '404':
           description: User not found
+  '/user/{userId}/bookings':
+    post:
+      tags:
+        - user
+      summary: Add booking to user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The userId to add the booking to
+          schema:
+            $ref: '#/components/schemas/User/properties/userId'
+      requestBody:
+        description: Booking parameters to add to user
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bookingId:
+                  $ref: '#/components/schemas/User/properties/bookings/items/properties/bookingId'
+                roomId:
+                  $ref: '#/components/schemas/User/properties/bookings/items/properties/roomId'
+                start:
+                  $ref: '#/components/schemas/User/properties/bookings/items/properties/start'
+      responses:
+        '200':
+          description: Updated user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  '/user/{userId}/bookings/{bookingId}':
+    delete:
+      tags:
+        - user
+      summary: Delete booking from user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The userId to delete the booking from
+          schema:
+            $ref: '#/components/schemas/User/properties/userId'
+        - name: bookingId
+          in: path
+          required: true
+          description: The bookingId to delete
+          schema:
+            $ref: '#/components/schemas/User/properties/bookings/items/properties/bookingId'
+      responses:
+        '200':
+          description: Updated user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
   /room:
     get:
       tags:
@@ -417,10 +476,11 @@ paths:
           required: true
           description: The start time to get the booking for
           schema:
-            $ref: '#/components/schemas/Room/properties/bookings/items/properties/start'
+            $ref: >-
+              #/components/schemas/Room/properties/bookings/items/properties/start
       responses:
         '200':
-          description: Booking if one exists, or null otherwise
+          description: 'Booking if one exists, or null otherwise'
           content:
             application/json:
               schema:
@@ -537,6 +597,35 @@ paths:
                       - Invalid room number provided
                       - No userId provided
                     description: Error message
+  '/booking/file-socket':
+    get:
+      tags:
+        - booking
+      summary: File update websocket
+      description: >-
+        ### DOC ONLY
+        
+        ### Not a REST endpoint
+        
+        This is the URI where the websocket to listen to file updates can be found. Emit a `bookingId` event with value `bookingId string` to listen for new files uploaded by any users who are a member of that booking.
+      responses:
+        '404':
+          description: Not found, because this is not a REST endpoint
+  '/booking/{bookingId}/new-files':
+    post:
+      tags:
+        - booking
+      summary: New files uploaded to booking, propagates to the file socket
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          description: The bookingId for which new files have been uploaded
+          schema:
+            $ref: '#/components/schemas/User/properties/bookings/items/properties/bookingId'
+      responses:
+        '200':
+          description: Success
 components:
   schemas:
     User:
@@ -580,7 +669,7 @@ components:
                 pattern: '^[0-9a-f]{24}$'
                 description: File ID
                 readOnly: true
-                example: '5c87a8bce2ae7509af1e9880'
+                example: 5c87a8bce2ae7509af1e9880
               time:
                 type: string
                 format: date-time
@@ -590,7 +679,9 @@ components:
                 example: '2019-03-11T19:04:59.472Z'
               name:
                 type: string
-                description: Filename composed of original filename and the date and time the file was uploaded
+                description: >-
+                  Filename composed of original filename and the date and time
+                  the file was uploaded
                 example: 'recording-2019-03-11T19:04:59.472Z.wav'
               path:
                 type: string
@@ -609,6 +700,24 @@ components:
           example:
             TV: 0.642
             PROJECTOR: 0.341
+        bookings:
+          type: array
+          items:
+            type: object
+            properties:
+              bookingId:
+                type: string
+                pattern: '^[0-9a-f]{24}$'
+                description: Booking ID
+                example: 5c8816493937130010ef2783
+              roomId:
+                $ref: '#/components/schemas/Room/properties/roomId'
+              start:
+                $ref: '#/components/schemas/Room/properties/bookings/items/properties/start'
+            required:
+              - bookingId
+              - roomId
+              - start
       required:
         - userId
     Room:
@@ -616,9 +725,9 @@ components:
       properties:
         roomId:
           type: string
-          pattern: '^\w+-\w+$'
+          pattern: ^\w+-\w+$
           description: Room ID
-          example: 'CS-225'
+          example: CS-225
         floor:
           type: number
           description: Floor number that the room is located on
@@ -667,17 +776,17 @@ components:
                 pattern: '^[0-9a-f]{24}$'
                 description: Booking ID
                 readOnly: true
-                example: '5c8816493937130010ef2783'
+                example: 5c8816493937130010ef2783
               start:
                 type: string
                 format: date-time
-                description: Start date and time of the booking, must be on the hour
+                description: 'Start date and time of the booking, must be on the hour'
                 example: '2019-03-13T13:00:00.000Z'
               end:
                 type: string
                 format: date-time
                 readOnly: true
-                description: End date and time of the booking, exactly one hour after start
+                description: 'End date and time of the booking, exactly one hour after start'
                 example: '2019-03-13T14:00:00.000Z'
               leader:
                 $ref: '#/components/schemas/User/properties/userId'
@@ -687,7 +796,7 @@ components:
                 minItems: 1
                 items:
                   $ref: '#/components/schemas/User/properties/userId'
-                description: The users that are part of this booking, including the leader
+                description: 'The users that are part of this booking, including the leader'
                 example:
                   - '1234567'
                   - '7654321'
