@@ -3,6 +3,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const del = require('del');
+const axios = require('axios');
 
 const User = require('../models/user');
 
@@ -136,6 +137,24 @@ router.post('/:userId/files', multer({
     });
 
     res.json(data);
+
+    // Get array of bookingIds that user is part of
+    const bookingIds = data.bookings.map(({ bookingId }) => bookingId);
+    console.log(`User's bookings:\n${JSON.stringify(bookingIds, null, 2)}`);
+
+    // POST the new file data to the booking service
+    await Promise.all(bookingIds.map(async (bookingId) => {
+      try {
+        const bookingRes = await axios({
+          method: 'post',
+          url: `http://booking:3000/${bookingId}/new-files`,
+          data: newFiles,
+        });
+        console.log(`RES for ${bookingId}:\n${bookingRes}`);
+      } catch (err) {
+        console.error(err);
+      }
+    }));
   } catch (err) {
     next(err);
   }
@@ -214,6 +233,53 @@ router.put('/:userId/preferences', async (req, res, next) => {
       userId: req.params.userId,
     }, {
       $set: { preferences: req.body },
+    }, {
+      new: true,
+      projection: defaultProjection,
+    });
+
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Add booking for user
+router.post('/:userId/bookings', async (req, res, next) => {
+  const { userId } = req.params;
+  const { bookingId, roomId, start } = req.body;
+  console.log(`Add booking ${bookingId} at ${start} to user ${userId}`);
+  try {
+    const newBooking = {
+      bookingId,
+      roomId,
+      start,
+    };
+
+    const data = await User.findOneAndUpdate({
+      userId,
+    }, {
+      $addToSet: { bookings: newBooking },
+    }, {
+      new: true,
+      projection: defaultProjection,
+    });
+
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Remove booking from user
+router.delete('/:userId/bookings/:bookingId', async (req, res, next) => {
+  const { userId, bookingId } = req.params;
+  console.log(`Remove booking ${bookingId} from user ${userId}`);
+  try {
+    const data = await User.findOneAndUpdate({
+      userId,
+    }, {
+      $pull: { bookings: { bookingId } },
     }, {
       new: true,
       projection: defaultProjection,
