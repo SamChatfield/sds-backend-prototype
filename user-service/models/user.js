@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const { Schema } = mongoose;
+const { Schema, ObjectId } = mongoose;
 
 const userSchema = new Schema({
   userId: {
@@ -41,6 +41,12 @@ const userSchema = new Schema({
     type: Map,
     of: Number,
   },
+  bookings: [{
+    bookingId: ObjectId,
+    roomId: String,
+    start: Date,
+    _id: false,
+  }],
 });
 
 module.exports = mongoose.model('User', userSchema);

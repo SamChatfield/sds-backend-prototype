@@ -1,5 +1,6 @@
 const express = require('express');
 const moment = require('moment');
+const axios = require('axios');
 
 const Room = require('../models/room');
 
@@ -12,7 +13,7 @@ const defaultProjection = {
 
 // Get all rooms
 router.get('/', async (req, res, next) => {
-  console.log('Get alll rooms');
+  console.log('Get all rooms');
   try {
     const data = await Room.find({}, defaultProjection);
     res.json(data);
@@ -153,6 +154,36 @@ router.post('/:roomId/bookings', async (req, res, next) => {
             projection: defaultProjection,
           });
 
+          const createdBooking = await Room.findOne({
+            roomId: req.params.roomId,
+          }, {
+            bookings: { $elemMatch: { start: startMomentString } },
+          }, {
+            projection: 'bookings',
+          });
+          console.log(`Created booking:\n${JSON.stringify(createdBooking, null, 2)}`);
+
+          const newBookingId = createdBooking.bookings[0]._id;
+          console.log(`New booking ID: ${newBookingId}`);
+
+          // Add bookingId to each user in the booking
+          await Promise.all(req.body.users.map(async (userId) => {
+            try {
+              const userRes = await axios({
+                method: 'post',
+                url: `http://user:3000/${userId}/bookings`,
+                data: {
+                  bookingId: newBookingId,
+                  roomId: req.params.roomId,
+                  start: startMomentString,
+                },
+              });
+              console.log(`RES for ${userId}:\n${userRes}`);
+            } catch (err) {
+              console.error(err);
+            }
+          }));
+
           res.json(data);
         }
       }
@@ -202,18 +233,43 @@ router.delete('/:roomId/bookings/:bookingId', async (req, res, next) => {
   const { roomId, bookingId } = req.params;
   console.log(`Delete booking for room ${roomId} with ID ${bookingId}`);
   try {
-    const data = await Room.findOneAndUpdate({
+    // Get the booking to be deleted
+    const bookingData = await Room.findOne({
       roomId,
     }, {
-      $pull: { bookings: { _id: bookingId } },
+      bookings: { $elemMatch: { _id: bookingId } },
     }, {
-      new: true,
-      projection: defaultProjection,
+      projection: 'bookings',
     });
 
-    if (!data) {
+    if (!bookingData) {
       res.status(404).send('Room not found');
+    } else if (!bookingData.bookings || !bookingData.bookings.length) {
+      res.status(404).send('Booking not found');
     } else {
+      const { users } = bookingData.bookings[0];
+
+      await Promise.all(users.map(async (userId) => {
+        try {
+          const userRes = await axios({
+            method: 'delete',
+            url: `http://user:3000/${userId}/bookings/${bookingId}`,
+          });
+          console.log(`RES for ${userId}:\n${userRes}`);
+        } catch (err) {
+          console.error(err);
+        }
+      }));
+
+      const data = await Room.findOneAndUpdate({
+        roomId,
+      }, {
+        $pull: { bookings: { _id: bookingId } },
+      }, {
+        new: true,
+        projection: defaultProjection,
+      });
+
       res.json(data);
     }
   } catch (err) {

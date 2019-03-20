@@ -57,6 +57,21 @@ services:
       - "traefik.docker.network=sds"
       - "traefik.frontend.rule=PathPrefixStrip:/api/user"
       - "traefik.port=3000"
+  booking:
+    build: ./booking-service
+    image: samchatfield/sds-booking-service
+    command: npm run dev
+    depends_on:
+      - proxy
+    volumes:
+      - /usr/src/app/node_modules/
+      - ./booking-service:/usr/src/app/
+    networks:
+      - sds
+    labels:
+      - "traefik.docker.network=sds"
+      - "traefik.frontend.rule=PathPrefixStrip:/api/booking"
+      - "traefik.port=3000"
 volumes:
   user-uploads:
 networks:
