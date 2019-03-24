@@ -283,11 +283,14 @@ paths:
               type: object
               properties:
                 bookingId:
-                  $ref: '#/components/schemas/User/properties/bookings/items/properties/bookingId'
+                  $ref: >-
+                    #/components/schemas/User/properties/bookings/items/properties/bookingId
                 roomId:
-                  $ref: '#/components/schemas/User/properties/bookings/items/properties/roomId'
+                  $ref: >-
+                    #/components/schemas/User/properties/bookings/items/properties/roomId
                 start:
-                  $ref: '#/components/schemas/User/properties/bookings/items/properties/start'
+                  $ref: >-
+                    #/components/schemas/User/properties/bookings/items/properties/start
       responses:
         '200':
           description: Updated user data
@@ -312,7 +315,8 @@ paths:
           required: true
           description: The bookingId to delete
           schema:
-            $ref: '#/components/schemas/User/properties/bookings/items/properties/bookingId'
+            $ref: >-
+              #/components/schemas/User/properties/bookings/items/properties/bookingId
       responses:
         '200':
           description: Updated user data
@@ -534,7 +538,7 @@ paths:
             $ref: '#/components/schemas/User/properties/userId'
       responses:
         '200':
-          description: Boolean response indicating whether to unlock door
+          description: Boolean response indicating whether to unlock door as well as the ID of the booking which allows this access
           content:
             application/json:
               schema:
@@ -542,6 +546,8 @@ paths:
                 properties:
                   unlock:
                     type: boolean
+                  bookingId:
+                    $ref: '#/components/schemas/Room/properties/bookings/items/properties/_id'
         '404':
           description: Not Found
           content:
@@ -597,32 +603,35 @@ paths:
                       - Invalid room number provided
                       - No userId provided
                     description: Error message
-  '/booking/file-socket':
+  /booking/file-socket:
     get:
       tags:
         - booking
       summary: File update websocket
       description: >-
         ### DOC ONLY
-        
+
         ### Not a REST endpoint
-        
-        This is the URI where the websocket to listen to file updates can be found. Emit a `bookingId` event with value `bookingId string` to listen for new files uploaded by any users who are a member of that booking.
+
+        This is the URI where the websocket to listen to file updates can be
+        found. Emit a `bookingId` event with value `bookingId string` to listen
+        for new files uploaded by any users who are a member of that booking.
       responses:
         '404':
-          description: Not found, because this is not a REST endpoint
+          description: 'Not found, because this is not a REST endpoint'
   '/booking/{bookingId}/new-files':
     post:
       tags:
         - booking
-      summary: New files uploaded to booking, propagates to the file socket
+      summary: 'New files uploaded to booking, propagates to the file socket'
       parameters:
         - name: bookingId
           in: path
           required: true
           description: The bookingId for which new files have been uploaded
           schema:
-            $ref: '#/components/schemas/User/properties/bookings/items/properties/bookingId'
+            $ref: >-
+              #/components/schemas/User/properties/bookings/items/properties/bookingId
       responses:
         '200':
           description: Success
@@ -713,7 +722,8 @@ components:
               roomId:
                 $ref: '#/components/schemas/Room/properties/roomId'
               start:
-                $ref: '#/components/schemas/Room/properties/bookings/items/properties/start'
+                $ref: >-
+                  #/components/schemas/Room/properties/bookings/items/properties/start
             required:
               - bookingId
               - roomId

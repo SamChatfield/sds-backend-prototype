@@ -301,8 +301,11 @@ router.get('/:roomId/unlock/:userId', async (req, res, next) => {
       // Should the room just open and create a new booking if there isn't one already?
       res.status(404).send('Booking not found');
     } else {
-      const { users } = data.bookings[0];
-      res.json({ unlock: users.includes(userId) });
+      const { users, _id } = data.bookings[0];
+      res.json({
+        unlock: users.includes(userId),
+        bookingId: _id,
+      });
     }
   } catch (err) {
     next(err);
