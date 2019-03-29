@@ -3,7 +3,8 @@ info:
   title: Room Booking System API
   version: 0.1.0
 servers:
-  - url: 'http://sds.samchatfield.com/api'
+  - url: 'http://moot.samchatfield.com'
+  - url: 'http://sds.samchatfield.com'
 tags:
   - name: user
     description: User data
@@ -12,7 +13,7 @@ tags:
   - name: booking
     description: Booking functions
 paths:
-  /user:
+  /api/user:
     get:
       tags:
         - user
@@ -44,7 +45,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-  '/user/{userId}':
+  '/api/user/{userId}':
     get:
       tags:
         - user
@@ -65,7 +66,7 @@ paths:
                 $ref: '#/components/schemas/User'
         '404':
           description: User not found
-  '/user/{userId}/locations':
+  '/api/user/{userId}/locations':
     get:
       tags:
         - user
@@ -130,7 +131,7 @@ paths:
                 $ref: '#/components/schemas/User'
         '404':
           description: User not found
-  '/user/{userId}/files':
+  '/api/user/{userId}/files':
     get:
       tags:
         - user
@@ -205,7 +206,7 @@ paths:
                 $ref: '#/components/schemas/User'
         '404':
           description: User not found
-  '/user/{userId}/files/{fileId}':
+  '/api/user/{userId}/files/{fileId}':
     delete:
       tags:
         - user
@@ -232,7 +233,7 @@ paths:
                 $ref: '#/components/schemas/User'
         '404':
           description: File not found
-  '/user/{userId}/preferences':
+  '/api/user/{userId}/preferences':
     put:
       tags:
         - user
@@ -263,7 +264,7 @@ paths:
                 $ref: '#/components/schemas/User'
         '404':
           description: User not found
-  '/user/{userId}/bookings':
+  '/api/user/{userId}/bookings':
     post:
       tags:
         - user
@@ -298,7 +299,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-  '/user/{userId}/bookings/{bookingId}':
+  '/api/user/{userId}/bookings/{bookingId}':
     delete:
       tags:
         - user
@@ -324,7 +325,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-  /room:
+  /api/room:
     get:
       tags:
         - room
@@ -356,7 +357,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Room'
-  '/room/{roomId}':
+  '/api/room/{roomId}':
     get:
       tags:
         - room
@@ -435,7 +436,7 @@ paths:
                 $ref: '#/components/schemas/Room'
         '404':
           description: Room not found
-  '/room/{roomId}/bookings':
+  '/api/room/{roomId}/bookings':
     post:
       tags:
         - room
@@ -463,7 +464,7 @@ paths:
                 $ref: '#/components/schemas/Room'
         '404':
           description: Room not found
-  '/room/{roomId}/bookings/{start}':
+  '/api/room/{roomId}/bookings/{start}':
     get:
       tags:
         - room
@@ -491,7 +492,7 @@ paths:
                 $ref: '#/components/schemas/Room/properties/bookings/items'
         '404':
           description: Room not found
-  '/room/{roomId}/bookings/{bookingId}':
+  '/api/room/{roomId}/bookings/{bookingId}':
     delete:
       tags:
         - room
@@ -518,7 +519,7 @@ paths:
                 $ref: '#/components/schemas/Room'
         '404':
           description: Room not found
-  '/room/{roomId}/unlock/{userId}':
+  '/api/room/{roomId}/unlock/{userId}':
     get:
       tags:
         - room
@@ -557,7 +558,7 @@ paths:
                 enum:
                   - Room not found
                   - Booking not found
-  '/room/{roomNumber}/unlock':
+  '/api/room/{roomNumber}/unlock':
     post:
       deprecated: true
       tags:
@@ -603,7 +604,7 @@ paths:
                       - Invalid room number provided
                       - No userId provided
                     description: Error message
-  /booking/file-socket:
+  /api/booking/file-socket:
     get:
       tags:
         - booking
@@ -619,7 +620,7 @@ paths:
       responses:
         '404':
           description: 'Not found, because this is not a REST endpoint'
-  '/booking/{bookingId}/new-files':
+  '/api/booking/{bookingId}/new-files':
     post:
       tags:
         - booking
